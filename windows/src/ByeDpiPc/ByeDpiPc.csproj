@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- -p:NoElevate=true builds a non-admin copy, handy for UI work (VPN mode won't start). -->
+    <ApplicationManifest Condition="'$(NoElevate)' != 'true'">app.manifest</ApplicationManifest>
+    <AssemblyName>ByeDPI</AssemblyName>
+    <RootNamespace>ByeDpiPc</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>ByeDPI for PC</Product>
+    <Description>Windows port of ByeByeDPI: byedpi with a system-wide VPN mode</Description>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- ThemeMode (Fluent) is still flagged experimental in .NET 9. -->
+    <NoWarn>$(NoWarn);WPF0001;WFO0003</NoWarn>
+  </PropertyGroup>
+
+  <!-- WinForms is only pulled in for the tray icon; keep its global usings out of the WPF code. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Assets\*.list;Assets\*.sites" LogicalName="%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <!-- Native engines fetched by scripts/fetch-deps.ps1 -->
+  <ItemGroup>
+    <None Include="..\..\deps\*.exe;..\..\deps\*.dll" Link="bin\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+
+</Project>

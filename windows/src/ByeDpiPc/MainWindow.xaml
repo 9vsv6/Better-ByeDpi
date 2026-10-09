@@ -1,0 +1,374 @@
+<Window x:Class="ByeDpiPc.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ByeDPI" Width="980" Height="700" MinWidth="760" MinHeight="520"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <DockPanel Margin="12,16,8,12">
+            <StackPanel DockPanel.Dock="Top" Margin="8,0,0,18">
+                <TextBlock Text="ByeDPI" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="for Windows" Style="{StaticResource Hint}" />
+            </StackPanel>
+            <TextBlock DockPanel.Dock="Bottom" Margin="8,0" Style="{StaticResource Hint}" TextWrapping="Wrap">
+                Port of <Hyperlink NavigateUri="https://github.com/romanvht/ByeByeDPI" RequestNavigate="OnLink">ByeByeDPI</Hyperlink>
+                · engine <Hyperlink NavigateUri="https://github.com/hufrea/byedpi" RequestNavigate="OnLink">byedpi</Hyperlink>
+            </TextBlock>
+            <StackPanel>
+                <RadioButton x:Name="NavHome" Style="{StaticResource NavButton}" IsChecked="True" Checked="OnNav" Tag="PageHome">
+                    <StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE80F;" Margin="0,2,12,0" /><TextBlock Text="Home" /></StackPanel>
+                </RadioButton>
+                <RadioButton Style="{StaticResource NavButton}" Checked="OnNav" Tag="PageSettings">
+                    <StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE713;" Margin="0,2,12,0" /><TextBlock Text="Settings" /></StackPanel>
+                </RadioButton>
+                <RadioButton x:Name="NavTest" Style="{StaticResource NavButton}" Checked="OnNav" Tag="PageTest">
+                    <StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE9D9;" Margin="0,2,12,0" /><TextBlock Text="Strategy test" /></StackPanel>
+                </RadioButton>
+                <RadioButton Style="{StaticResource NavButton}" Checked="OnNav" Tag="PageLogs">
+                    <StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE9F9;" Margin="0,2,12,0" /><TextBlock Text="Logs" /></StackPanel>
+                </RadioButton>
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Column="1">
+            <!-- ===================== HOME ===================== -->
+            <ScrollViewer x:Name="PageHome" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="28,24" MaxWidth="640">
+                    <TextBlock Text="Home" Style="{StaticResource PageTitle}" />
+
+                    <Border Style="{StaticResource Card}" Padding="16,28">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Button x:Name="PowerButton" Style="{StaticResource PowerButton}" Click="OnPower" Background="#6B7280">
+                                <StackPanel>
+                                    <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Text="&#xE7E8;" FontSize="34" HorizontalAlignment="Center" Margin="0,0,0,8" />
+                                    <TextBlock x:Name="PowerText" Text="Connect" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <TextBlock x:Name="StatusText" Text="Disconnected" FontSize="16" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Margin="0,22,0,2" />
+                            <TextBlock x:Name="StatusDetail" Style="{StaticResource Hint}" HorizontalAlignment="Center" TextAlignment="Center" />
+                            <TextBlock x:Name="ErrorText" Foreground="{DynamicResource SystemFillColorCriticalBrush}" TextWrapping="Wrap"
+                                       HorizontalAlignment="Center" TextAlignment="Center" Margin="0,8,0,0" MaxWidth="460" Visibility="Collapsed" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Mode" Style="{StaticResource CardTitle}" />
+                            <RadioButton x:Name="ModeVpn" GroupName="Mode" Checked="OnModeChanged" Margin="0,0,0,6">
+                                <StackPanel>
+                                    <TextBlock Text="VPN — whole PC" FontWeight="SemiBold" />
+                                    <TextBlock Style="{StaticResource Hint}" Text="Every app goes through byedpi via a virtual network adapter (Wintun). Same as ByeByeDPI's VPN mode." />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton x:Name="ModeProxy" GroupName="Mode" Checked="OnModeChanged">
+                                <StackPanel>
+                                    <TextBlock Text="Proxy only" FontWeight="SemiBold" />
+                                    <TextBlock Style="{StaticResource Hint}" Text="Runs a SOCKS proxy and (optionally) sets it as the Windows proxy, so browsers use it. Nothing else is touched." />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <DockPanel Margin="0,0,0,8">
+                                <Button DockPanel.Dock="Right" Content="Edit" Click="OnEditStrategy" Padding="12,4" />
+                                <TextBlock Text="Active strategy" Style="{StaticResource CardTitle}" Margin="0" VerticalAlignment="Center" />
+                            </DockPanel>
+                            <TextBlock x:Name="StrategySource" Style="{StaticResource Hint}" Margin="0,0,0,6" />
+                            <TextBox x:Name="StrategyPreview" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ===================== SETTINGS ===================== -->
+            <ScrollViewer x:Name="PageSettings" Visibility="Collapsed" VerticalScrollBarVisibility="Auto">
+                <StackPanel x:Name="SettingsPanel" Margin="28,24" MaxWidth="720"
+                            TextBoxBase.TextChanged="OnSettingEdited" ToggleButton.Checked="OnSettingEdited"
+                            ToggleButton.Unchecked="OnSettingEdited" Selector.SelectionChanged="OnSettingEdited">
+                    <DockPanel Margin="0,0,0,16">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Content="Reset to defaults" Click="OnResetSettings" Margin="0,0,8,0" />
+                            <Button x:Name="SaveButton" Content="Save" Style="{DynamicResource AccentButtonStyle}" Click="OnSaveSettings" MinWidth="90" />
+                        </StackPanel>
+                        <TextBlock Text="Settings" Style="{StaticResource PageTitle}" Margin="0" />
+                    </DockPanel>
+                    <TextBlock x:Name="SavedHint" Style="{StaticResource Hint}" Margin="0,-8,0,12" Visibility="Collapsed"
+                               Text="Saved. Reconnect to apply." />
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="General" Style="{StaticResource CardTitle}" />
+                            <CheckBox x:Name="AutostartBox" Content="Open ByeDPI when Windows starts" Click="OnAutostart" Margin="0,0,0,4" />
+                            <StackPanel Margin="28,0,0,6" IsEnabled="{Binding IsChecked, ElementName=AutostartBox}">
+                                <CheckBox Content="Connect automatically" IsChecked="{Binding ConnectAtSignIn}" Margin="0,0,0,4" />
+                                <CheckBox Content="Start hidden in the tray" IsChecked="{Binding TrayAtSignIn}" />
+                            </StackPanel>
+                            <CheckBox Content="Connect when I open the app myself" IsChecked="{Binding ConnectOnLaunch}" Margin="0,0,0,4" />
+                            <CheckBox Content="Start minimized to tray when I open it myself" IsChecked="{Binding StartMinimized}" Margin="0,0,0,4" />
+                            <CheckBox Content="Closing the window keeps ByeDPI running in the tray" IsChecked="{Binding CloseToTray}" Margin="0,0,0,4" />
+                            <CheckBox Content="Reconnect automatically when the network changes (VPN)" IsChecked="{Binding RestartOnNetworkChange}" Margin="0,0,0,4" />
+                            <CheckBox Content="Set as Windows proxy in Proxy mode" IsChecked="{Binding SetSystemProxy}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /><ColumnDefinition Width="110" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Connection" Style="{StaticResource CardTitle}" Grid.ColumnSpan="4" />
+                            <TextBlock Grid.Row="1" Text="Proxy IP" Style="{StaticResource FieldLabel}" />
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ProxyIp, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="Port" Style="{StaticResource FieldLabel}" Margin="16,0,12,0" />
+                            <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding ProxyPort, UpdateSourceTrigger=PropertyChanged}" />
+                            <CheckBox Grid.Row="2" Grid.ColumnSpan="4" Margin="0,12,0,0" IsChecked="{Binding UseDoh}"
+                                      Content="Encrypted DNS (DoH) in VPN mode — needed when your ISP fakes DNS answers for blocked sites" />
+                            <TextBlock Grid.Row="3" Text="DoH URL" Style="{StaticResource FieldLabel}" Margin="0,8,12,0" />
+                            <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,8,0,0" Text="{Binding DohUrl, UpdateSourceTrigger=PropertyChanged}"
+                                     IsEnabled="{Binding UseDoh}" />
+                            <TextBlock Grid.Row="4" Text="Plain DNS" Style="{StaticResource FieldLabel}" Margin="0,8,12,0" />
+                            <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,8,0,0" Text="{Binding Dns, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" Style="{StaticResource Hint}" Margin="0,4,0,0"
+                                       Text="Plain DNS is used when DoH is off or can't start (comma separated, empty = keep yours). An IP-based DoH URL such as https://1.1.1.1/dns-query or https://8.8.8.8/dns-query avoids a bootstrap lookup." />
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="byedpi strategy" Style="{StaticResource CardTitle}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <RadioButton x:Name="EditorUi" GroupName="Editor" Content="Simple editor" Margin="0,0,24,0" Checked="OnEditorChanged" />
+                                <RadioButton x:Name="EditorCmd" GroupName="Editor" Content="Command line" Checked="OnEditorChanged" />
+                            </StackPanel>
+
+                            <!-- Command line editor -->
+                            <StackPanel x:Name="CmdEditor">
+                                <TextBox x:Name="CmdBox" Text="{Binding CommandLine, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True"
+                                         TextWrapping="Wrap" MinHeight="90" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                                <TextBlock Style="{StaticResource Hint}" Margin="0,4,0,10"
+                                           Text="Any ciadpi arguments, e.g. -o1 -An -Kt,h -d1 -At -r1+s -As. --ip/--port are added from Connection if missing. Find good ones on the Strategy test page." />
+                                <DockPanel>
+                                    <TextBlock Text="History" Style="{StaticResource FieldLabel}" />
+                                    <Button DockPanel.Dock="Right" Content="Clear" Click="OnClearHistory" Margin="8,0,0,0" />
+                                    <ComboBox x:Name="HistoryBox" SelectionChanged="OnHistoryPicked" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                                </DockPanel>
+                            </StackPanel>
+
+                            <!-- UI editor -->
+                            <StackPanel x:Name="UiEditor">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" /><ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Text="Desync method" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox x:Name="MethodBox" Grid.Column="1" SelectedItem="{Binding DesyncMethod}" Margin="0,3" />
+
+                                    <TextBlock Grid.Row="1" Text="Split position" Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                        <TextBox Width="90" Text="{Binding SplitPosition, UpdateSourceTrigger=PropertyChanged}" />
+                                        <CheckBox Content="Relative to Host/SNI (+h)" IsChecked="{Binding SplitAtHost}" Margin="16,0,0,0" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="2" Text="Desync protocols" Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                        <CheckBox Content="HTTPS" IsChecked="{Binding DesyncHttps}" Margin="0,0,16,0" />
+                                        <CheckBox Content="HTTP" IsChecked="{Binding DesyncHttp}" Margin="0,0,16,0" />
+                                        <CheckBox Content="UDP" IsChecked="{Binding DesyncUdp}" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="3" Text="UDP fake packets" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="3" Grid.Column="1" Width="90" HorizontalAlignment="Left" Margin="0,3"
+                                             Text="{Binding UdpFakeCount, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="4" Text="TLS record split" Style="{StaticResource FieldLabel}" />
+                                    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Margin="0,3">
+                                        <CheckBox Content="Enable" IsChecked="{Binding TlsRecordSplit}" Margin="0,0,16,0" />
+                                        <TextBox Width="90" Text="{Binding TlsRecordSplitPosition, UpdateSourceTrigger=PropertyChanged}" />
+                                        <CheckBox Content="At SNI (+s)" IsChecked="{Binding TlsRecordSplitAtSni}" Margin="16,0,0,0" />
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="5" Text="HTTP tweaks" Style="{StaticResource FieldLabel}" />
+                                    <WrapPanel Grid.Row="5" Grid.Column="1" Margin="0,3">
+                                        <CheckBox Content="hOsT mixed case" IsChecked="{Binding HostMixedCase}" Margin="0,0,16,0" />
+                                        <CheckBox Content="DoMaIn mixed case" IsChecked="{Binding DomainMixedCase}" Margin="0,0,16,0" />
+                                        <CheckBox Content="Remove space after Host:" IsChecked="{Binding HostRemoveSpaces}" />
+                                    </WrapPanel>
+
+                                    <TextBlock Grid.Row="6" Text="Default TTL (0 = system)" Style="{StaticResource FieldLabel}" />
+                                    <TextBox Grid.Row="6" Grid.Column="1" Width="90" HorizontalAlignment="Left" Margin="0,3"
+                                             Text="{Binding DefaultTtl, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <TextBlock Grid.Row="7" Text="Other" Style="{StaticResource FieldLabel}" />
+                                    <CheckBox Grid.Row="7" Grid.Column="1" Margin="0,3" Content="Reject domain requests (-N)" IsChecked="{Binding NoDomain}" />
+                                </Grid>
+
+                                <Border x:Name="FakeOptions" Margin="0,10,0,0" Padding="12" CornerRadius="6" Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="158" /><ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition /><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                                        <TextBlock Text="Fake TTL" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Column="1" Width="90" HorizontalAlignment="Left" Margin="0,3" Text="{Binding FakeTtl, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Grid.Row="1" Text="Fake SNI" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,3" Text="{Binding FakeSni, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Grid.Row="2" Text="Fake offset" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Row="2" Grid.Column="1" Width="90" HorizontalAlignment="Left" Margin="0,3" Text="{Binding FakeOffset, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Grid>
+                                </Border>
+
+                                <Border x:Name="OobOptions" Margin="0,10,0,0" Padding="12" CornerRadius="6" Background="{DynamicResource SubtleFillColorSecondaryBrush}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="OOB byte" Style="{StaticResource FieldLabel}" Width="146" />
+                                        <TextBox Width="60" MaxLength="1" Text="{Binding OobChar, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="170" /><ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions><RowDefinition /><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                                    <TextBlock Text="Host list" Style="{StaticResource FieldLabel}" />
+                                    <ComboBox x:Name="HostsModeBox" Grid.Column="1" SelectedItem="{Binding HostsMode}" Margin="0,3" />
+                                    <TextBox x:Name="BlacklistBox" Grid.Row="1" Grid.Column="1" Margin="0,3" MinHeight="70" AcceptsReturn="True" TextWrapping="Wrap"
+                                             Text="{Binding HostsBlacklist, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                                    <TextBox x:Name="WhitelistBox" Grid.Row="1" Grid.Column="1" Margin="0,3" MinHeight="70" AcceptsReturn="True" TextWrapping="Wrap"
+                                             Text="{Binding HostsWhitelist, UpdateSourceTrigger=PropertyChanged}" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                                    <TextBlock x:Name="HostsHint" Grid.Row="2" Grid.Column="1" Style="{StaticResource Hint}" />
+                                </Grid>
+
+                                <Expander Header="Advanced" Margin="0,12,0,0">
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="154" /><ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                                        <TextBlock Text="Max connections" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Column="1" Width="110" HorizontalAlignment="Left" Margin="0,3" Text="{Binding MaxConnections, UpdateSourceTrigger=PropertyChanged}" />
+                                        <TextBlock Grid.Row="1" Text="Buffer size" Style="{StaticResource FieldLabel}" />
+                                        <TextBox Grid.Row="1" Grid.Column="1" Width="110" HorizontalAlignment="Left" Margin="0,3" Text="{Binding BufferSize, UpdateSourceTrigger=PropertyChanged}" />
+                                    </Grid>
+                                </Expander>
+                            </StackPanel>
+
+                            <TextBlock Text="Resulting command" Style="{StaticResource Hint}" Margin="0,14,0,4" />
+                            <TextBox x:Name="ArgsPreview" IsReadOnly="True" TextWrapping="Wrap" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ===================== TEST ===================== -->
+            <Grid x:Name="PageTest" Visibility="Collapsed" Margin="28,24">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,12">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ToggleButton x:Name="TestOptionsToggle" Content="Options" Margin="0,0,8,0" IsChecked="False" />
+                        <Button x:Name="TestButton" Content="Start test" Style="{DynamicResource AccentButtonStyle}" Click="OnTest" MinWidth="110" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Strategy test" Style="{StaticResource PageTitle}" Margin="0" />
+                        <TextBlock x:Name="TestStatus" Style="{StaticResource Hint}" Text="Tries each strategy against the selected sites and ranks them. Your connection is paused while it runs." />
+                    </StackPanel>
+                </DockPanel>
+
+                <Border x:Name="TestOptions" Grid.Row="1" Style="{StaticResource Card}"
+                        Visibility="{Binding IsChecked, ElementName=TestOptionsToggle, Converter={StaticResource BoolToVis}}">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="24" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Sites" FontWeight="SemiBold" Margin="0,0,0,6" />
+                            <WrapPanel x:Name="SiteListsPanel" />
+                            <TextBlock Text="Extra sites (one per line)" Style="{StaticResource Hint}" Margin="0,8,0,4" />
+                            <TextBox x:Name="CustomSitesBox" AcceptsReturn="True" MinHeight="60" MaxHeight="120" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                     FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="90" /></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                                <TextBlock Text="Requests per site" Style="{StaticResource FieldLabel}" />
+                                <TextBox x:Name="TestRequestsBox" Grid.Column="1" Margin="0,2" />
+                                <TextBlock Grid.Row="1" Text="Timeout (s)" Style="{StaticResource FieldLabel}" />
+                                <TextBox x:Name="TestTimeoutBox" Grid.Row="1" Grid.Column="1" Margin="0,2" />
+                                <TextBlock Grid.Row="2" Text="Parallel requests" Style="{StaticResource FieldLabel}" />
+                                <TextBox x:Name="TestConcurrencyBox" Grid.Row="2" Grid.Column="1" Margin="0,2" />
+                                <TextBlock Grid.Row="3" Text="Delay between (s)" Style="{StaticResource FieldLabel}" />
+                                <TextBox x:Name="TestDelayBox" Grid.Row="3" Grid.Column="1" Margin="0,2" />
+                                <TextBlock Grid.Row="4" Text="SNI for {sni}" Style="{StaticResource FieldLabel}" />
+                                <TextBox x:Name="TestSniBox" Grid.Row="4" Grid.Column="1" Margin="0,2" />
+                            </Grid>
+                            <CheckBox x:Name="CustomCommandsCheck" Content="Use my own strategy list" Margin="0,8,0,4" />
+                            <TextBox x:Name="CustomCommandsBox" AcceptsReturn="True" MinHeight="60" MaxHeight="120" TextWrapping="NoWrap"
+                                     HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                     IsEnabled="{Binding IsChecked, ElementName=CustomCommandsCheck}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ListBox x:Name="ResultsList" Grid.Row="2" HorizontalContentAlignment="Stretch" BorderThickness="0" Background="Transparent"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,0,0,6" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0" Padding="12,10">
+                                <StackPanel>
+                                    <DockPanel>
+                                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                                            <Button Content="Copy" Click="OnCopyStrategy" Margin="0,0,6,0" Padding="10,3" />
+                                            <Button Content="Use" Click="OnUseStrategy" Style="{DynamicResource AccentButtonStyle}" Padding="12,3" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Summary}" FontWeight="SemiBold" FontSize="14" />
+                                    </DockPanel>
+                                    <ProgressBar Value="{Binding Percent, Mode=OneWay}" Maximum="100" Height="4" Margin="0,6,0,6" />
+                                    <TextBlock Text="{Binding Command}" FontFamily="{StaticResource MonoFont}" FontSize="12" TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    <Expander Header="Sites" Margin="0,4,0,0">
+                                        <ItemsControl ItemsSource="{Binding Sites}" FontFamily="{StaticResource MonoFont}" FontSize="12" Margin="4,4,0,0" />
+                                    </Expander>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+
+            <!-- ===================== LOGS ===================== -->
+            <DockPanel x:Name="PageLogs" Visibility="Collapsed" Margin="28,24">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Open data folder" Click="OnOpenFolder" Margin="0,0,8,0" />
+                        <Button Content="Copy" Click="OnCopyLogs" Margin="0,0,8,0" />
+                        <Button Content="Clear" Click="OnClearLogs" />
+                    </StackPanel>
+                    <TextBlock Text="Logs" Style="{StaticResource PageTitle}" Margin="0" />
+                </DockPanel>
+                <TextBox x:Name="LogBox" IsReadOnly="True" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap" />
+            </DockPanel>
+        </Grid>
+    </Grid>
+</Window>
