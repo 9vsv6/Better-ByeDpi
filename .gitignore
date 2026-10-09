@@ -20,3 +20,6 @@ local.properties
 
 # JNI
 app/src/main/jniLibs/
+# Windows app outputs at the old location
+/dist/
+/apk/

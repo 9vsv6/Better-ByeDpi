@@ -13,7 +13,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "io.github.romanvht.byedpi"
+        // Own id so it installs next to the official ByeByeDPI.
+        applicationId = "io.github.romanvht.byedpi.mod"
         minSdk = 21
         //noinspection OldTargetApi
         targetSdk = 34
@@ -38,6 +39,8 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             isMinifyEnabled = true
             isShrinkResources = true
+            // Personal build: sign with the local debug key so the APK installs without a keystore.
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             buildConfigField("String", "VERSION_NAME",  "\"${defaultConfig.versionName}-debug\"")

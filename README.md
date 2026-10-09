@@ -1,65 +1,61 @@
-<div align="center">
-  <p>
-    <img src="https://github.com/romanvht/ByeDPIAndroid/raw/master/.github/images/app.svg" alt="Логотип ByeDPI" width="200" />
-  </p>
-  <h1>ByeByeDPI Android</h1>
-  <p>
-    Русский |
-    <a href="README-en.md">English</a> |
-    <a href="README-tr.md">Türkçe</a>
-  </p>
-  <p>
-    <a href="https://github.com/romanvht/ByeByeDPI/releases/latest"><img src="https://img.shields.io/github/v/release/romanvht/ByeByeDPI" alt="Latest Release" /></a>
-    <a href="https://github.com/romanvht/ByeByeDPI/releases"><img src="https://img.shields.io/github/downloads/romanvht/ByeByeDPI/total" alt="Downloads" /></a>
-    <a href="https://github.com/romanvht/ByeByeDPI/blob/master/LICENSE"><img src="https://img.shields.io/github/license/romanvht/ByeByeDPI" alt="License" /></a>
-    <a href="https://github.com/romanvht/ByeByeDPI"><img src="https://img.shields.io/github/languages/code-size/romanvht/ByeByeDPI" alt="GitHub code size in bytes"/></a>
-  </p>
-</div>
+# Better ByeDPI
 
-Приложение для Android, которое локально запускает ByeDPI и перенаправляет весь трафик через него.
+A fork of [ByeByeDPI](https://github.com/romanvht/ByeByeDPI) that adds a Windows version.
 
-Для стабильной работы может потребоваться изменить настройки. Подробнее о различных настройках можно прочитать в [документации ByeDPI](https://github.com/hufrea/byedpi/blob/main/README.md).
+DPI bypass for **Windows** and **Android**, built on [byedpi](https://github.com/hufrea/byedpi).
 
-Приложение не является VPN. Оно использует VPN-режим на Android для перенаправления трафика, но не передает ничего на удаленный сервер. Оно не шифрует трафик и не скрывает ваш IP-адрес.
+- **Windows:** a port of the app with a whole-PC VPN mode.
+- **Android:** ByeByeDPI with defaults that work on networks where the stock ones don't.
 
-У приложения есть единственный официальный сайт -> https://byebyedpi.xyz
+Both were tuned on a line whose ISP blocks sites in two ways: fake DNS answers (every plain DNS query, to any server, comes back `0.0.0.0`), and DPI that resets or silently drops TLS handshakes by site name. On that line the setup here gets TikTok (video included), MyAnimeList, YouTube and Discord working.
 
----
+## Windows app (`windows/`)
 
-### Возможности
-* Автозапуск сервиса при старте устройства
-* Сохранение списков параметров командной строки
-* Улучшена совместимость с Android TV/BOX
-* Раздельное туннелирование приложений
-* Импорт/экспорт настроек
+| ByeByeDPI (Android)            | Windows app                                                       |
+|--------------------------------|-------------------------------------------------------------------|
+| VpnService + hev-socks5-tunnel | Wintun adapter + tun2socks; takes the default route with 0/1 + 128/1 |
+| App excluded from its own VPN  | byedpi bound (`-I`) to the real adapter's IP, so its traffic skips the tunnel |
+| Proxy mode                     | SOCKS proxy, optionally set as the Windows proxy                  |
+| UI editor / command line       | Same options (minus Linux-only ones: TFO, drop-SACK, md5sig)      |
+| Proxy test                     | Same strategy and site lists; resolves over DoH                   |
+| Quick tile / boot receiver     | Tray icon, "Open when Windows starts" (Task Scheduler, no UAC prompt) |
 
-### Использование
-* Для работы автозапуска активируйте пункт в настройках.
-* Рекомендуется подключится один раз к VPN, чтобы принять запрос.
-* После этого, при загрузке устройства, приложение автоматически запустит сервис в зависимости от настроек (VPN/Proxy)
-* Комплексная инструкция от комьюнити [ByeByeDPI-Manual](https://byebyedpi.xyz)
+Extras:
 
-### Сборка
-1. Клонируйте репозиторий с сабмодулями:
-```bash
-git clone --recurse-submodules
+- **Encrypted DNS:** in VPN mode a local resolver on `127.0.0.1:53` sends every query over DoH (default `https://1.1.1.1/dns-query`), which defeats fake DNS answers.
+- **Auto-reconnect:** reconnects after a network change or an engine crash. Engines run in a kill-on-close job, so a crash never leaves the adapter or routes behind.
+- **Default strategy:** `-Kt,h -d1 -s1+s -r1+s -An -Ku -a1 -An`.
+
+Build (needs the .NET 9 SDK):
+
+```powershell
+.\windows\scripts\fetch-deps.ps1   # ciadpi.exe, tun2socks.exe, wintun.dll -> windows\deps\  (official releases)
+.\windows\scripts\build.ps1        # self-contained app -> windows\dist\ByeDPI.exe
 ```
-2. Запустите скрипт сборки из корня репозитория:
+
+The app runs as admin; it needs that to create the network adapter and routes. Settings and logs are in `%AppData%\ByeDPI-PC`.
+
+## Android app (repo root)
+
+ByeByeDPI with these changes ([original readme](README-ru.md), [English](README-en.md)):
+
+- **Default strategy:** `-d1 -s1+s -r1+s -a1`. The stock `-o1 -a1 -r-5+se` failed for both TikTok and MyAnimeList on the test line.
+- **Own app id** (`io.github.romanvht.byedpi.mod`, shown as "ByeByeDPI Mod"), so it installs next to the official app.
+- **Release builds signed with the local debug key**, so no keystore is needed for personal use.
+
+If your ISP fakes DNS answers, set **Settings → Network & internet → Private DNS → `one.one.one.one`**. ByeByeDPI detects it and uses it.
+
+Build (needs the Android SDK + NDK and JDK 21):
+
 ```bash
+git submodule update --init --recursive
 ./gradlew assembleRelease
 ```
-3. APK будет в `app/build/outputs/apk/release/`
 
-> P.S.: hev_socks5_tunnel не соберется под Windows, вам нужно будет использовать WSL
+On Windows without Developer Mode, git checks the tunnel library's symlinked headers out as text stubs. Replace each with the file it points to before building.
 
-### Хеш подписи
-SHA-256:
-`77:45:10:75:AC:EA:40:64:06:47:5D:74:D4:59:88:3A:49:A6:40:51:FA:F3:2E:42:F7:18:F3:F9:77:7A:8D:FB`
+## Credits
 
-### Зависимости
-- [ByeDPI](https://github.com/hufrea/byedpi)
-- [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)
+[ByeByeDPI](https://github.com/romanvht/ByeByeDPI) by romanvht (GPL-3.0) · [byedpi](https://github.com/hufrea/byedpi) by hufrea (MIT) · [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) (MIT) · [tun2socks](https://github.com/xjasonlyu/tun2socks) (GPL-3.0) · [Wintun](https://www.wintun.net)
 
-### Благодарность
-- [hufrea](https://github.com/hufrea) - за [ByeDPI](https://github.com/hufrea/byedpi)
-- [dovecoteescapee](https://github.com/dovecoteescapee) - за изначальную реализацию [ByeDPIAndroid](https://github.com/dovecoteescapee/ByeDPIAndroid)
+Licensed GPL-3.0, like ByeByeDPI.

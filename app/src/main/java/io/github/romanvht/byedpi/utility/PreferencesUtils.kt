@@ -7,7 +7,9 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import io.github.romanvht.byedpi.data.Mode
 
-private const val DEFAULT_CMD_ARGS = "-o1 -a1 -r-5+se"
+// Tested against TikTok, MyAnimeList, YouTube, Discord and Google on a DPI-filtered line where
+// the upstream default (-o1 -a1 -r-5+se) failed.
+private const val DEFAULT_CMD_ARGS = "-d1 -s1+s -r1+s -a1"
 
 val PreferenceFragmentCompat.sharedPreferences
     get() = preferenceScreen.sharedPreferences
