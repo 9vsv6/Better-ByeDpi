@@ -15,5 +15,5 @@ dotnet publish (Join-Path $root 'src\ByeDpiPc\ByeDpiPc.csproj') -c Release -r "w
     -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true `
     -p:DebugType=none -o $out
 if ($LASTEXITCODE -ne 0) { throw 'dotnet publish failed' }
-Copy-Item (Join-Path $root 'LICENSE') $out
+Copy-Item (Join-Path (Split-Path $root -Parent) 'LICENSE') $out
 Write-Host "`nDone: $out\ByeDPI.exe"
